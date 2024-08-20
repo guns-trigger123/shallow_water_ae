@@ -12,7 +12,8 @@ class ShallowWaterDataset(Dataset):
                                              batch_size=16,
                                              shuffle=True,
                                              num_workers=0,
-                                             collate_fn=dataset.collate_fn)
+                                             # collate_fn=dataset.collate_fn
+                                             )
     '''
 
     def __init__(self, data_path: str, conditions: list, split_type: str):
@@ -24,7 +25,8 @@ class ShallowWaterDataset(Dataset):
         self.conditions = conditions
         self.split_type = split_type  # "videos" or "series"
         if self.split_type == "videos":
-            self.input_dcit = [{"R": R, "Hp": Hp, "input_index": i, "target_index": i + self.input_len}
+            self.input_dcit = [{"R": R, "Hp": Hp, "input_index": i, "target_index": i + self.input_len,
+                                "position": (-1, -1)}
                                for (R, Hp) in conditions for i in range(self.max_timestep - self.input_len)]
         elif self.split_type == "series":
             self.input_dcit = [{"R": R, "Hp": Hp, "input_index": i, "target_index": i + self.input_len,
@@ -38,6 +40,7 @@ class ShallowWaterDataset(Dataset):
         input_dict = self.input_dcit[item]
         R, Hp = input_dict["R"], input_dict["Hp"]
         input_index, target_index = input_dict["input_index"], input_dict["target_index"]
+        position = input_dict["position"]
         input_data = np.load(self.data_path + f"/R_{R}_Hp_{Hp}.npy",
                              allow_pickle=True,
                              mmap_mode='r')[input_index:input_index + self.input_len]
@@ -53,7 +56,7 @@ class ShallowWaterDataset(Dataset):
                 "R": R,
                 "input_start_timestep": input_index,
                 "target_start_timestep": target_index,
-                "position": input_dict.get("position")}
+                "position": position}
 
     def __len__(self):
         return len(self.input_dcit)

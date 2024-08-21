@@ -17,7 +17,7 @@ class ShallowWaterDataset(Dataset):
     '''
 
     def __init__(self, data_path: str, conditions: list, split_type: str):
-        self.max_timestep = 100
+        self.max_timestep = 200
         self.max_imagesize = 128
         self.input_len = 7
         self.target_len = 1
@@ -50,8 +50,8 @@ class ShallowWaterDataset(Dataset):
         if self.split_type == "series":
             input_data = input_data[:, :, input_dict["position"][0], input_dict["position"][1]]
             target_data = target_data[:, :, input_dict["position"][0], input_dict["position"][1]]
-        return {"input": torch.as_tensor(input_data),
-                "target": torch.as_tensor(target_data),
+        return {"input": torch.as_tensor(input_data, dtype=torch.float32),
+                "target": torch.as_tensor(target_data, dtype=torch.float32),
                 "Hp": Hp,
                 "R": R,
                 "input_start_timestep": input_index,
@@ -78,3 +78,33 @@ class ShallowWaterDataset(Dataset):
                 "input_start_timestep": input_index,
                 "target_start_timestep": target_index,
                 "position": position}
+
+
+class ShallowWaterReconstructDataset(Dataset):
+    def __init__(self, data_path: str, conditions: list):
+        self.max_timestep = 200
+        self.max_imagesize = 128
+        self.data_path = data_path
+        self.conditions = conditions
+        self.input_dcit = [{"R": R, "Hp": Hp, "input_index": i, }
+                           for (R, Hp) in conditions for i in range(self.max_timestep)]
+        self.normalize = [0.05, 0.05, 0.2]
+
+    def __getitem__(self, item):
+        input_dict = self.input_dcit[item]
+        R, Hp = input_dict["R"], input_dict["Hp"]
+        input_index = input_dict["input_index"]
+        input_data = np.load(self.data_path + f"/R_{R}_Hp_{Hp}.npy",
+                             allow_pickle=True,
+                             mmap_mode='r')[input_index]
+        input_data = torch.as_tensor(input_data, dtype=torch.float32)
+        input_data[0] = input_data[0] / self.normalize[0]
+        input_data[1] = input_data[1] / self.normalize[1]
+        input_data[2] = (input_data[2] - 1) / self.normalize[2]
+
+        return {"input": input_data,
+                "Hp": Hp,
+                "R": R, }
+
+    def __len__(self):
+        return len(self.input_dcit)

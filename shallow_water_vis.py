@@ -1,8 +1,8 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-data = np.load('data/R_15_Hp_6.npy', allow_pickle=True, mmap_mode='r')
-array = data[50]
+data = np.load('data/R_10_Hp_8.npy', allow_pickle=True, mmap_mode='r')
+array = data[199]
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
 # Titles for each channel

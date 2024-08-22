@@ -208,7 +208,7 @@ def simulation(fig_size, R, Hp_hat, iteration_times):
 
     timestep = int(iteration_times / 100)
     file_name = f'R_{R}_Hp_{Hp_hat}'
-    save_dir = f'./data/'
+    save_dir = f'../data/'
     os.makedirs(save_dir, exist_ok=True)
     np.save(os.path.join(save_dir, file_name), final_npy)
 
@@ -225,7 +225,7 @@ def worker_simulation(params):
 
 if __name__ == "__main__":
 
-    config = yaml.load(open("./config.yaml", "r"),
+    config = yaml.load(open("config.yaml", "r"),
                        Loader=yaml.FullLoader)
 
     for timestep in config['timestep']:

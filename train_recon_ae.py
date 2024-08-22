@@ -15,9 +15,9 @@ def init_ae_data(config: dict):
     data_path = config["data_params"]["data_path"]
     num_workers = config["data_params"]["num_workers"]
     train_batch_size = config["data_params"]["train_batch_size"]
-    # conditions = [tuple(re.findall(r"\d+", i)) for i in os.listdir(data_path)
-    #               if re.search(r"\.npy$", i)]
-    conditions = [(10, 8)]
+    conditions = [tuple(re.findall(r"\d+", i)) for i in os.listdir(data_path)
+                  if re.search(r"\.npy$", i)]
+    # conditions = [(10, 8)]
     dataset = ShallowWaterReconstructDataset(data_path, conditions)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=train_batch_size,
@@ -51,11 +51,11 @@ if __name__ == '__main__':
             step_schedule.step()
             model.zero_grad()
 
-            if (iter + 1) % 10 == 0:
+            if (iter + 1) % 100 == 0:
                 print(f"pinn epoch: {epoch} iter: {iter} " +
                       f"loss: {loss}")
 
-            if (iter + 1) % 10 == 0:
+            if (iter + 1) % 100 == 0:
                 save_path = os.path.join('./saved_models/', f'ae_{epoch}_{iter + 1}.pt')
                 torch.save(model.state_dict(), save_path)
 

@@ -50,8 +50,8 @@ class ShallowWaterDataset(Dataset):
         if self.split_type == "series":
             input_data = input_data[:, :, input_dict["position"][0], input_dict["position"][1]]
             target_data = target_data[:, :, input_dict["position"][0], input_dict["position"][1]]
-        return {"input": torch.as_tensor(input_data, dtype=torch.float32),
-                "target": torch.as_tensor(target_data, dtype=torch.float32),
+        return {"input": torch.as_tensor(input_data.copy(), dtype=torch.float32),
+                "target": torch.as_tensor(target_data.copy(), dtype=torch.float32),
                 "Hp": Hp,
                 "R": R,
                 "input_start_timestep": input_index,
@@ -88,7 +88,7 @@ class ShallowWaterReconstructDataset(Dataset):
         self.conditions = conditions
         self.input_dcit = [{"R": R, "Hp": Hp, "input_index": i, }
                            for (R, Hp) in conditions for i in range(self.max_timestep)]
-        self.normalize = [0.05, 0.05, 0.2]
+        self.normalize = [0.05, 0.05, 0.3]
 
     def __getitem__(self, item):
         input_dict = self.input_dcit[item]
@@ -97,7 +97,7 @@ class ShallowWaterReconstructDataset(Dataset):
         input_data = np.load(self.data_path + f"/R_{R}_Hp_{Hp}.npy",
                              allow_pickle=True,
                              mmap_mode='r')[input_index]
-        input_data = torch.as_tensor(input_data, dtype=torch.float32)
+        input_data = torch.as_tensor(input_data.copy(), dtype=torch.float32)
         input_data[0] = input_data[0] / self.normalize[0]
         input_data[1] = input_data[1] / self.normalize[1]
         input_data[2] = (input_data[2] - 1) / self.normalize[2]

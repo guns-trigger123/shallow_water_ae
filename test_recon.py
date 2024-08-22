@@ -35,7 +35,7 @@ if __name__ == '__main__':
     dataset, dataloader = init_ae_data(config)
     model = init_model(config)
     model = model.to(device)
-    model.load_state_dict(torch.load("./saved_models/ae_99_10.pt"))
+    model.load_state_dict(torch.load("./saved_models/ae_99_100.pt"))
 
     model.eval()
     for epoch in range(1):

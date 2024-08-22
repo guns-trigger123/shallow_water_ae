@@ -7,7 +7,7 @@ model_params:
 data_params:
   data_path: "./data"
   train_batch_size: 20
-  val_batch_size:  64
+  val_batch_size: 64
   patch_size: 128
   num_workers: 2
 
@@ -20,10 +20,15 @@ exp_params:
   manual_seed: 1265
 
 trainer_params:
-  gpus: [1]
+  gpus: [ 1 ]
   max_epochs: 100
 
 logging_params:
   save_dir: "logs/"
   name: "VanillaVAE"
-  
+
+cae:
+  C: 3
+  H: 128
+  W: 128
+  latent_dim: 256

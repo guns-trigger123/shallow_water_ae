@@ -9,28 +9,32 @@ class ConvAutoencoder(nn.Module):
 
         # Encoder
         self.encode = nn.Sequential(
-            nn.Conv2d(input_channels, 16, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(input_channels, 16, kernel_size=3, stride=2, padding=1),
             nn.ReLU(True),
-            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(True),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(True),
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.ReLU(True),
             nn.Flatten(),
         )
 
-        self.fc1 = nn.Linear(64 * (image_height // 8) * (image_width // 8), latent_dim)
+        self.fc1 = nn.Linear(128 * (image_height // 16) * (image_width // 16), latent_dim)
 
-        self.fc2 = nn.Linear(latent_dim, 64 * (image_height // 8) * (image_width // 8))
+        self.fc2 = nn.Linear(latent_dim, 128 * (image_height // 16) * (image_width // 16))
 
         # Encoder
         self.decode = nn.Sequential(
-            nn.Unflatten(1, (64, image_height // 8, image_width // 8)),
-            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
+            nn.Unflatten(1, (128, image_height // 16, image_width // 16)),
+            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(True),
-            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(True),
-            nn.ConvTranspose2d(16, input_channels, kernel_size=4, stride=2, padding=1),
-            nn.Tanh(),
+            nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(16, input_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.Sigmoid(),
         )
 
     def forward(self, x):

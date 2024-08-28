@@ -13,14 +13,15 @@ def init_model(config: dict):
     return ConvAutoencoder(config)
 
 
-def init_ae_data(config: dict):
-    data_path = config["data_params"]["data_path"]
+def init_recon_data(config: dict, tag: str):
+    data_path = config["data_params"][tag + "_data_path"]
     num_workers = config["data_params"]["num_workers"]
     train_batch_size = config["data_params"]["train_batch_size"]
-    # conditions = [tuple(re.findall(r"\d+", i)) for i in os.listdir(data_path)
+    # conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
     #               if re.search(r"\.npy$", i)]
-    conditions = [(10, 8)]
-    dataset = ShallowWaterReconstructDataset(data_path, conditions)
+    conditions = [(22, 13)]
+    minmax_data = np.load("data/minmax/minmax_data.npy")
+    dataset = ShallowWaterReconstructDataset(data_path, conditions, minmax_data)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=train_batch_size,
                                              shuffle=True,
@@ -32,10 +33,10 @@ def init_ae_data(config: dict):
 if __name__ == '__main__':
     device = torch.device('cuda')
     config = yaml.load(open("ae.yaml", "r"), Loader=yaml.FullLoader)
-    dataset, dataloader = init_ae_data(config)
+    dataset, dataloader = init_recon_data(config, "test")
     model = init_model(config)
     model = model.to(device)
-    model.load_state_dict(torch.load("./saved_models/ae_99_100.pt"))
+    model.load_state_dict(torch.load("./saved_models/ae_999_400.pt"))
 
     model.eval()
     for epoch in range(1):
@@ -45,7 +46,7 @@ if __name__ == '__main__':
 
             recon = results[0].detach().cpu().numpy()
             real = batch_input[0].cpu().numpy()
-            err = real - recon
+            err = np.abs(real - recon)
             fig, axes = plt.subplots(3, 3, figsize=(15, 15))
 
             # Titles for each channel

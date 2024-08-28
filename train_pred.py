@@ -1,5 +1,7 @@
 import re
 import os
+import time
+
 import torch
 import yaml
 import numpy as np
@@ -69,6 +71,7 @@ if __name__ == '__main__':
 
     cae_lstm.train()
     for epoch in range(config["trainer_params"]["max_epochs"]):
+        t1 = time.time()
         for iter, batch in enumerate(dataloader):
             batch_input = batch["input"].to(device)
             batch_target = batch["target"].to(device)
@@ -87,3 +90,5 @@ if __name__ == '__main__':
             if (iter + 1) % 390 == 0:
                 save_path = os.path.join('./saved_models/', f'lstm_{epoch}_{iter + 1}.pt')
                 torch.save(cae_lstm.state_dict(), save_path)
+        t2 = time.time()
+        print(f"epoch: {epoch} time: {t2 - t1}s ")

@@ -96,10 +96,11 @@ if __name__ == '__main__':
                 recon = pred_target[timestep].cpu().numpy()
                 real = real_target[timestep]
                 err = np.abs(real - recon)
-                fig, axes = plt.subplots(3, 3, figsize=(15, 15))
+                fig, axes = plt.subplots(3, 3, figsize=(12, 12))
 
                 # Titles for each channel
                 titles = ['u', 'v', 'h']
+                fig.suptitle(f"timestep: {timestep}", fontsize=24)
 
                 # Plot each channel in a separate subplot
                 for i in range(3):

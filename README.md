@@ -9,6 +9,7 @@ shallow_water_ae/
 │   ├── pred_test_1.png
 │   ├── pred_test_2.png
 │   ├── pred_test_3.png
+│   ├── pred_test.gif
 │   └── recon_ae_test.png
 │
 ├── data/
@@ -124,11 +125,4 @@ first row: recon,
 second row: ref,
 third row: err
 
-timestep 1:
-![recon results](./assets/pred_test_1.png)
-
-timestep 2:
-![recon results](./assets/pred_test_2.png)
-
-timestep 3:
-![recon results](./assets/pred_test_3.png)
+![recon results](./assets/pred_test.gif)

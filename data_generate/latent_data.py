@@ -26,7 +26,7 @@ if __name__ == '__main__':
     max_vals = minmax_data[1].view(1, 3, 1, 1)
 
     model = init_model(config)
-    model.load_state_dict(torch.load("../saved_models/ae_999_400.pt"))
+    model.load_state_dict(torch.load("../saved_models/baseline/ae_999_400.pt"))
 
     for (R, Hp) in conditions:
         input_data = np.load(data_path + f"/R_{R}_Hp_{Hp}.npy", allow_pickle=True, mmap_mode='r')

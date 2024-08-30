@@ -65,9 +65,9 @@ def init_recon_data(config: dict, tag: str):
 if __name__ == '__main__':
     device = torch.device('cuda')
     config = yaml.load(open("ae.yaml", "r"), Loader=yaml.FullLoader)
-    cae = init_cae_model(config, "./saved_models/ae_999_400.pt")
+    cae = init_cae_model(config, "saved_models/baseline/ae_999_400.pt")
     cae = cae.to(device)
-    cae_lstm = init_cae_lstm_model(config, "./saved_models/lstm_999_390.pt")
+    cae_lstm = init_cae_lstm_model(config, "saved_models/baseline/lstm_999_390.pt")
     cae_lstm = cae_lstm.to(device)
     latent_dataset, latent_dataloader = init_latent_pred_data(config, "test")
 

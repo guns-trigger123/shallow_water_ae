@@ -45,8 +45,9 @@ shallow_water_ae/
 │   └── shallow_water_vis.py
 │
 ├── saved_models/
-│   ├── ae_999_400.pt
-│   └── lstm_999_390.py
+│   └── baseline/
+│       ├── ae_999_400.pt
+│       └── lstm_999_390.py
 │
 ├── ae.yaml
 ├── conv_ae.py

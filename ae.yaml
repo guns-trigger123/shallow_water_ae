@@ -31,3 +31,4 @@ cae:
 
 cae_lstm:
   hidden_dim: 256
+  num_conditional: 2

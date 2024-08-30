@@ -50,7 +50,7 @@ def init_latent_pred_data(config: dict, tag: str):
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=train_batch_size,
                                              shuffle=True,
-                                             num_workers=num_workers,
+                                             num_workers=3,
                                              )
     return dataset, dataloader
 
@@ -75,6 +75,11 @@ if __name__ == '__main__':
         for iter, batch in enumerate(dataloader):
             batch_input = batch["input"].to(device)
             batch_target = batch["target"].to(device)
+            R, Hp = batch["R"].reshape(-1, 1, 1) / 40.0, batch["Hp"].reshape(-1, 1, 1) / 20.0
+            R, Hp = R.repeat(1, 3, 1), Hp.repeat(1, 3, 1)
+            ref_reg = torch.cat([R, Hp], dim=2).to(device)
+            batch_input = torch.cat([batch_input, ref_reg], dim=2)
+
             results = cae_lstm(batch_input)
             loss = criterion(results, batch_target)
 

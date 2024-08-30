@@ -24,7 +24,7 @@ def init_recon_data(config: dict, tag: str):
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=train_batch_size,
                                              shuffle=True,
-                                             num_workers=0,
+                                             num_workers=3,
                                              )
     return dataset, dataloader
 
@@ -40,6 +40,7 @@ class FullyConnectNetwork(nn.Module):
             nn.Linear(64, 32),
             nn.Tanh(),
             nn.Linear(32, output_dim),
+            nn.Tanh(),
         )
 
     def forward(self, x):
@@ -70,10 +71,10 @@ if __name__ == '__main__':
             results = model(batch_input)
             latent = model.encoder(batch_input)
             latent_reg = model2(latent)
-            R, Hp = batch["R"].reshape(-1, 1), batch["Hp"].reshape(-1, 1)
+            R, Hp = batch["R"].reshape(-1, 1)/40.0, batch["Hp"].reshape(-1, 1)/20.0
             ref_reg = torch.cat([R, Hp], dim=1).float().to(device)
             loss1 = criterion(results, batch_input)
-            loss2 = criterion(latent_reg, ref_reg)
+            loss2 = criterion(latent_reg, ref_reg) # conditional
             loss = loss1 + 0.2 * loss2
 
             loss.backward()

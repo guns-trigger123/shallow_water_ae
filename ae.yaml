@@ -3,7 +3,8 @@ data_params:
   val_data_path: "./data/val"
   test_data_path: "./data/test"
   train_batch_size: 50
-  val_batch_size: 64
+  test_batch_size: 2400
+  val_batch_size: 4000
   patch_size: 128
   num_workers: 4
 

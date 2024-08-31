@@ -16,7 +16,7 @@ def init_model(config: dict):
 def init_recon_data(config: dict, tag: str):
     data_path = config["data_params"][tag + "_data_path"]
     num_workers = config["data_params"]["num_workers"]
-    train_batch_size = config["data_params"]["train_batch_size"]
+    train_batch_size = config["data_params"][tag + "_batch_size"]
     conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
                   if re.search(r"\.npy$", i)]
     minmax_data = np.load("data/minmax/minmax_data.npy")
@@ -53,6 +53,7 @@ if __name__ == '__main__':
     device = torch.device('cuda')
     config = yaml.load(open("ae.yaml", "r"), Loader=yaml.FullLoader)
     dataset, dataloader = init_recon_data(config, "train")
+    val_dataset, val_dataloader = init_recon_data(config, "val")
     model = init_model(config)
     model = model.to(device)
     model2 = FullyConnectNetwork(model.fc1.out_features, 2)
@@ -65,16 +66,18 @@ if __name__ == '__main__':
     criterion = torch.nn.MSELoss()
 
     model.train()
+    best_epoch = -1
+    min_err = np.array([100, 100, 100], dtype=np.float32)
     for epoch in range(config["trainer_params"]["max_epochs"]):
         for iter, batch in enumerate(dataloader):
             batch_input = batch["input"].to(device)
             results = model(batch_input)
             latent = model.encoder(batch_input)
             latent_reg = model2(latent)
-            R, Hp = batch["R"].reshape(-1, 1)/40.0, batch["Hp"].reshape(-1, 1)/20.0
+            R, Hp = batch["R"].reshape(-1, 1) / 40.0, batch["Hp"].reshape(-1, 1) / 20.0
             ref_reg = torch.cat([R, Hp], dim=1).float().to(device)
             loss1 = criterion(results, batch_input)
-            loss2 = criterion(latent_reg, ref_reg) # conditional
+            loss2 = criterion(latent_reg, ref_reg)  # conditional
             loss = loss1 + 0.2 * loss2
 
             loss.backward()
@@ -87,7 +90,22 @@ if __name__ == '__main__':
                       f"loss: {loss} loss1:{loss1} loss2:{loss2}")
 
             if (iter + 1) % 400 == 0:
+                # save_path = os.path.join('./saved_models/', f'ae_{epoch}_{iter + 1}.pt')
                 save_path = os.path.join('./saved_models/', f'conditional_ae_{epoch}_{iter + 1}.pt')
                 torch.save(model.state_dict(), save_path)
 
+        for iter, batch in enumerate(val_dataloader):
+            batch_input = batch["input"].to(device)
+            results = model(batch_input)
+
+            batch_recon = results.detach().cpu().numpy()
+            batch_real = batch_input.cpu().numpy()
+            batch_err = np.abs(batch_real - batch_recon)
+            uvh_mean_err = np.mean(batch_err, axis=(0, 2, 3))
+            if np.sum(uvh_mean_err) < np.sum(min_err):
+                best_epoch = epoch
+                min_err = uvh_mean_err
+                save_path = os.path.join('./saved_models/', f'conditional_ae_best.pt')
+                torch.save(model.state_dict(), save_path)
+    print(f"best_epoch: {best_epoch}")
     pass

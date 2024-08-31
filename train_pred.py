@@ -93,7 +93,8 @@ if __name__ == '__main__':
                       f"loss: {loss}")
 
             if (iter + 1) % 390 == 0:
-                save_path = os.path.join('./saved_models/', f'lstm_{epoch}_{iter + 1}.pt')
+                # save_path = os.path.join('./saved_models/', f'lstm_{epoch}_{iter + 1}.pt')
+                save_path = os.path.join('./saved_models/', f'conditional_lstm_{epoch}_{iter + 1}.pt')
                 torch.save(cae_lstm.state_dict(), save_path)
         t2 = time.time()
         print(f"epoch: {epoch} time: {t2 - t1}s ")

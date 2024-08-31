@@ -16,10 +16,10 @@ def init_model(config: dict):
 def init_recon_data(config: dict, tag: str):
     data_path = config["data_params"][tag + "_data_path"]
     num_workers = config["data_params"]["num_workers"]
-    train_batch_size = config["data_params"]["train_batch_size"]
-    # conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
-    #               if re.search(r"\.npy$", i)]
-    conditions = [(22, 13)]
+    train_batch_size = config["data_params"]["test_batch_size"]
+    conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
+                  if re.search(r"\.npy$", i)]
+    # conditions = [(22, 13)]
     minmax_data = np.load("data/minmax/minmax_data.npy")
     dataset = ShallowWaterReconstructDataset(data_path, conditions, minmax_data)
     dataloader = torch.utils.data.DataLoader(dataset,
@@ -36,7 +36,8 @@ if __name__ == '__main__':
     dataset, dataloader = init_recon_data(config, "test")
     model = init_model(config)
     model = model.to(device)
-    model.load_state_dict(torch.load("./saved_models/ae_999_400.pt"))
+    model.load_state_dict(torch.load("./saved_models/baseline/ae_999_400.pt"))
+    # model.load_state_dict(torch.load("./saved_models/conditional_ae_999_400.pt"))
 
     model.eval()
     for epoch in range(1):
@@ -44,9 +45,15 @@ if __name__ == '__main__':
             batch_input = batch["input"].to(device)
             results = model(batch_input)
 
-            recon = results[0].detach().cpu().numpy()
-            real = batch_input[0].cpu().numpy()
-            err = np.abs(real - recon)
+            batch_recon = results.detach().cpu().numpy()
+            batch_real = batch_input.cpu().numpy()
+            batch_err = np.abs(batch_real - batch_recon)
+            uvh_mean_err = np.mean(batch_err, axis=(0, 2, 3))
+            print(f"mean error: {uvh_mean_err}")
+
+            recon = batch_recon[0]
+            real = batch_real[0]
+            err = batch_err[0]
             fig, axes = plt.subplots(3, 3, figsize=(15, 15))
 
             # Titles for each channel

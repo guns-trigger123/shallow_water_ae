@@ -6,7 +6,9 @@ data_params:
   test_batch_size: 2400
   val_batch_size: 4000
   patch_size: 128
-  num_workers: 4
+  train_num_workers: 3
+  val_num_workers: 1
+  test_num_workers: 1
 
 
 exp_params:
@@ -32,4 +34,4 @@ cae:
 
 cae_lstm:
   hidden_dim: 256
-  num_conditional: 2
+  num_conditional: 0

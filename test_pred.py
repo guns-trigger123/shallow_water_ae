@@ -6,7 +6,7 @@ import torch
 import yaml
 import numpy as np
 import torch.optim as optim
-from shallow_water_dataset import ShallowWaterLatentPredictDataset, ShallowWaterReconstructDataset
+from shallow_water_dataset import ShallowWaterLatentPredictDataset, ShallowWaterDataset
 from conv_ae import ConvAutoencoder
 from lstm import LSTMPredictor
 from matplotlib import pyplot as plt
@@ -32,32 +32,32 @@ def init_cae_lstm_model(config: dict, cae_lstm_param_path=None):
 
 def init_latent_pred_data(config: dict, tag: str):
     data_path = config["data_params"][tag + "_data_path"]
-    num_workers = config["data_params"]["num_workers"]
-    train_batch_size = config["data_params"]["train_batch_size"]
+    num_workers = config["data_params"][tag + "_num_workers"]
+    batch_size = config["data_params"][tag + "_batch_size"]
     conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
                   if re.search(r"\.npy$", i)]
     dataset = ShallowWaterLatentPredictDataset(data_path, conditions)
     dataloader = torch.utils.data.DataLoader(dataset,
-                                             batch_size=train_batch_size,
+                                             batch_size=batch_size,
                                              shuffle=True,
-                                             num_workers=0,
+                                             num_workers=num_workers,
                                              )
     return dataset, dataloader
 
 
-def init_recon_data(config: dict, tag: str):
+def init_recon_pred_data(config: dict, tag: str):
     data_path = config["data_params"][tag + "_data_path"]
-    num_workers = config["data_params"]["num_workers"]
-    train_batch_size = config["data_params"]["train_batch_size"]
-    # conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
-    #               if re.search(r"\.npy$", i)]
-    conditions = [(22, 13)]
+    num_workers = config["data_params"][tag + "_num_workers"]
+    batch_size = config["data_params"][tag + "_batch_size"]
+    conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
+                  if re.search(r"\.npy$", i)]
+    # conditions = [(22, 13)]
     minmax_data = np.load("data/minmax/minmax_data.npy")
-    dataset = ShallowWaterReconstructDataset(data_path, conditions, minmax_data)
+    dataset = ShallowWaterDataset(data_path, conditions, minmax_data)
     dataloader = torch.utils.data.DataLoader(dataset,
-                                             batch_size=train_batch_size,
+                                             batch_size=batch_size,
                                              shuffle=True,
-                                             num_workers=0,
+                                             num_workers=num_workers,
                                              )
     return dataset, dataloader
 
@@ -65,11 +65,12 @@ def init_recon_data(config: dict, tag: str):
 if __name__ == '__main__':
     device = torch.device('cuda')
     config = yaml.load(open("ae.yaml", "r"), Loader=yaml.FullLoader)
-    cae = init_cae_model(config, "saved_models/baseline/ae_999_400.pt")
+    cae = init_cae_model(config, "saved_models/latent512/ae_999_400.pt")
     cae = cae.to(device)
-    cae_lstm = init_cae_lstm_model(config, "saved_models/baseline/lstm_999_390.pt")
+    cae_lstm = init_cae_lstm_model(config, "saved_models/latent512/lstm_999_390.pt")
     cae_lstm = cae_lstm.to(device)
     latent_dataset, latent_dataloader = init_latent_pred_data(config, "test")
+    recon_dataset, recon_dataloader = init_recon_pred_data(config, "test")
 
     for epoch in range(1):
         for iter, batch in enumerate(latent_dataloader):

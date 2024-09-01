@@ -15,17 +15,17 @@ def init_model(config: dict):
 
 def init_recon_data(config: dict, tag: str):
     data_path = config["data_params"][tag + "_data_path"]
-    num_workers = config["data_params"]["num_workers"]
-    train_batch_size = config["data_params"]["test_batch_size"]
+    num_workers = config["data_params"][tag + "_num_workers"]
+    batch_size = config["data_params"][tag + "_batch_size"]
     conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
                   if re.search(r"\.npy$", i)]
     # conditions = [(22, 13)]
     minmax_data = np.load("data/minmax/minmax_data.npy")
     dataset = ShallowWaterReconstructDataset(data_path, conditions, minmax_data)
     dataloader = torch.utils.data.DataLoader(dataset,
-                                             batch_size=train_batch_size,
+                                             batch_size=batch_size,
                                              shuffle=True,
-                                             num_workers=0,
+                                             num_workers=num_workers,
                                              )
     return dataset, dataloader
 
@@ -36,7 +36,8 @@ if __name__ == '__main__':
     dataset, dataloader = init_recon_data(config, "test")
     model = init_model(config)
     model = model.to(device)
-    model.load_state_dict(torch.load("./saved_models/baseline/ae_999_400.pt"))
+    model.load_state_dict(torch.load("./saved_models/latent512/ae_999_400.pt"))
+    # model.load_state_dict(torch.load("./saved_models/baseline/ae_999_400.pt"))
     # model.load_state_dict(torch.load("./saved_models/conditional_ae_999_400.pt"))
 
     model.eval()

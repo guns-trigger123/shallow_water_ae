@@ -45,9 +45,20 @@ shallow_water_ae/
 │   └── shallow_water_vis.py
 │
 ├── saved_models/
-│   └── baseline/
-│       ├── ae_999_400.pt
-│       └── lstm_999_390.py
+│   └── latent512/
+│       ├── ae_1/...
+│       ...
+│       ├── ae_3/...
+│       ├── conditional_1/...
+│       ...
+│       └── conditional_6/
+│           ├── checkpoint_conditional_ae.pt
+│           ├── conditional_ae_0_250.pt
+│           ...
+│           ├── conditional_ae_1499_250.pt
+│           ├── conditional_ae_best.pt
+│           ├── conditional_ae_best_epoch.pt
+│           └── train_recon.yaml
 │
 ├── ae.yaml
 ├── conv_ae.py

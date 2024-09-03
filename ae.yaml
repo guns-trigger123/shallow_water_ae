@@ -2,7 +2,7 @@ data_params:
   train_data_path: "./data/train"
   val_data_path: "./data/val"
   test_data_path: "./data/test"
-  train_batch_size: 50
+  train_batch_size: 80
   test_batch_size: 2400
   val_batch_size: 4000
   patch_size: 128
@@ -12,7 +12,8 @@ data_params:
 
 
 exp_params:
-  LR: 0.00005
+  LR: 0.0001
+  recon_MLP_LR: 0.0001
   weight_decay: 0.0
   T_0: 10
   T_mult: 2
@@ -20,11 +21,15 @@ exp_params:
 
 trainer_params:
   gpus: [ 1 ]
-  max_epochs: 1000
+  max_epochs: 1500
+  recon_MLP_weight: 0.1
+  recon_MLP_weight_mode: "constant"
 
 logging_params:
   save_dir: "logs/"
   name: "CAE"
+  model_save_dir: "./saved_models/latent512/conditional_ae_6/"
+  model_save_prefix: "conditional_ae"
 
 cae:
   C: 3

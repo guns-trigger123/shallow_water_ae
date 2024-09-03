@@ -36,9 +36,10 @@ if __name__ == '__main__':
     dataset, dataloader = init_recon_data(config, "test")
     model = init_model(config)
     model = model.to(device)
-    model.load_state_dict(torch.load("./saved_models/latent512/ae_999_400.pt"))
-    # model.load_state_dict(torch.load("./saved_models/baseline/ae_999_400.pt"))
-    # model.load_state_dict(torch.load("./saved_models/conditional_ae_999_400.pt"))
+    # model.load_state_dict(torch.load("./saved_models/latent512/ae_1/ae_best.pt"))
+    model.load_state_dict(torch.load("./saved_models/latent512/conditional_ae_6/conditional_ae_best.pt"))
+    print(torch.load("./saved_models/latent512/conditional_ae_6/conditional_ae_best_epoch.pt"))
+
 
     model.eval()
     for epoch in range(1):

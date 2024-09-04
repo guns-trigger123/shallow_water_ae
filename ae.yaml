@@ -2,7 +2,7 @@ data_params:
   train_data_path: "./data/train"
   val_data_path: "./data/val"
   test_data_path: "./data/test"
-  train_batch_size: 80
+  train_batch_size: 50
   test_batch_size: 2400
   val_batch_size: 4000
   patch_size: 128
@@ -30,6 +30,8 @@ logging_params:
   name: "CAE"
   model_save_dir: "./saved_models/latent512/conditional_ae_6/"
   model_save_prefix: "conditional_ae"
+  pred_model_save_dir: "./saved_models/latent512/lstm_1/conditional_ae_6/"
+  pred_model_save_prefix: "lstm"
 
 cae:
   C: 3

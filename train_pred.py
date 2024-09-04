@@ -40,12 +40,12 @@ def init_pred_data(config: dict, tag: str, cae: ConvAutoencoder):
     return dataset, dataloader
 
 
-def init_latent_pred_data(config: dict, tag: str):
-    data_path = config["data_params"][tag + "_data_path"]
+def init_latent_pred_data(config: dict, tag: str, cae_name: str):
+    data_path = config["data_params"][tag + "_data_path"] + "/latent512/" + cae_name
     num_workers = config["data_params"][tag + "_num_workers"]
     batch_size = config["data_params"][tag + "_batch_size"]
     conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
-                  if re.search(r"\.npy$", i)]
+                  if re.search(r"\.pt$", i)]
     dataset = ShallowWaterLatentPredictDataset(data_path, conditions)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
@@ -56,19 +56,24 @@ def init_latent_pred_data(config: dict, tag: str):
 
 
 if __name__ == '__main__':
-    device = torch.device('cuda')
+    device = torch.device('cuda:0')
     config = yaml.load(open("ae.yaml", "r"), Loader=yaml.FullLoader)
-    # cae = init_cae_model(config, "./saved_models/ae_999_400.pt")
     cae_lstm = init_cae_lstm_model(config)
     cae_lstm = cae_lstm.to(device)
-    # dataset, dataloader = init_pred_data(config, "train", cae)
-    dataset, dataloader = init_latent_pred_data(config, "train")
-    val_dataset, val_dataloader = init_latent_pred_data(config, "val")
+    cae_name = "conditional_ae_6"
+    dataset, dataloader = init_latent_pred_data(config, "train", cae_name)
+    val_dataset, val_dataloader = init_latent_pred_data(config, "val", cae_name)
     criterion = torch.nn.MSELoss()
     opt = optim.Adam(cae_lstm.parameters(), lr=config["exp_params"]["LR"],
                      weight_decay=config["exp_params"]["weight_decay"])
     step_schedule = optim.lr_scheduler.CosineAnnealingWarmRestarts(opt, T_0=config["exp_params"]["T_0"],
                                                                    T_mult=config["exp_params"]["T_mult"])
+
+    MAX_ITER = len(dataloader)
+    SAVED_DIRECTORY = config["logging_params"]["pred_model_save_dir"]
+    SAVED_PREFIX = config["logging_params"]["pred_model_save_prefix"]
+    with open(SAVED_DIRECTORY + 'train_pred.yaml', 'w') as f:
+        yaml.safe_dump(config, f)
 
     best_epoch = -1
     min_err = np.array([100, 100, 100], dtype=np.float32)
@@ -92,19 +97,18 @@ if __name__ == '__main__':
             step_schedule.step()
             cae_lstm.zero_grad()
 
-            if (iter + 1) % 390 == 0:
+            if (iter + 1) % MAX_ITER == 0:
                 print(f"epoch: {epoch} iter: {iter} " +
                       f"loss: {loss}")
 
-            if (iter + 1) % 390 == 0:
-                save_path = os.path.join('./saved_models/', f'lstm_{epoch}_{iter + 1}.pt')
-                # save_path = os.path.join('./saved_models/', f'conditional_lstm_{epoch}_{iter + 1}.pt')
+            if (iter + 1) % MAX_ITER == 0:
+                save_path = os.path.join(SAVED_DIRECTORY,
+                                         SAVED_PREFIX + f'_{epoch}_{iter + 1}.pt')
                 torch.save(cae_lstm.state_dict(), save_path)
 
-            if (iter + 1) % 390 == 0:
-                checkpoint_dir = "./saved_models/"
-                CHECKPOINT_NAME = "checkpoint_lstm.pt"
-                # CHECKPOINT_NAME = "checkpoint_conditional_lstm.pt"
+            if (iter + 1) % MAX_ITER == 0:
+                checkpoint_dir = SAVED_DIRECTORY
+                CHECKPOINT_NAME = "checkpoint_" + SAVED_PREFIX + ".pt"
                 checkpoint_path = os.path.join(checkpoint_dir, CHECKPOINT_NAME)
                 torch.save({
                     'epoch': epoch,
@@ -135,15 +139,14 @@ if __name__ == '__main__':
             if np.sum(uvh_mean_err) < np.sum(min_err):
                 best_epoch = epoch
                 min_err = uvh_mean_err
-                save_path = os.path.join('./saved_models/', f'lstm_best.pt')
-                # save_path = os.path.join('./saved_models/', f'conditional_lstm_best.pt')
+                save_path = os.path.join(SAVED_DIRECTORY,
+                                         SAVED_PREFIX + '_best.pt')
                 torch.save(cae_lstm.state_dict(), save_path)
 
-                torch.save(torch.tensor([best_epoch]),
-                           os.path.join('./saved_models/', f'lstm_best_epoch.pt'))
-                # torch.save(torch.tensor([best_epoch]),
-                #            os.path.join('./saved_models/', f'conditional_lstm_best_epoch.pt'))
-
+                epoch_save_path = os.path.join(SAVED_DIRECTORY,
+                                               SAVED_PREFIX + '_best_epoch.pt')
+                torch.save(torch.tensor([best_epoch]), epoch_save_path)
+                print(f"best_epoch: {best_epoch}")
         t3 = time.time()
         print(f"epoch: {epoch} val time: {t3 - t2}s ")
     print(f"best_epoch: {best_epoch}")

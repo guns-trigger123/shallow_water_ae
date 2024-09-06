@@ -153,3 +153,7 @@ second row: ref,
 third row: err
 
 ![recon results](./assets/pred_test.gif)
+
+# Test error
+
+![](./assets/训练结果的测试误差对比.png)

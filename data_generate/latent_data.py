@@ -3,36 +3,51 @@ import os
 import torch
 import yaml
 import numpy as np
-import torch.optim as optim
-from shallow_water_dataset import ShallowWaterReconstructDataset
 from conv_ae import ConvAutoencoder
 
 
-def init_model(config: dict):
-    return ConvAutoencoder(config)
+def init_directory(latent_name, conv_ae_name):
+    dirs = [
+        f"../data/train/{latent_name}/{conv_ae_name}/",
+        f"../data/val/{latent_name}/{conv_ae_name}/",
+        f"../data/test/{latent_name}/{conv_ae_name}/"
+    ]
+    for dir in dirs:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
 
 
-if __name__ == '__main__':
-    config = yaml.load(open("../ae.yaml", "r"), Loader=yaml.FullLoader)
-    tag = "train"
-    data_path = "../" + config["data_params"][tag + "_data_path"]
+def init_model(config: dict, latent_name: str, conv_ae_name: str, conv_ae_type: str):
+    model = ConvAutoencoder(config)
+    model.load_state_dict(torch.load(f"../saved_models/{latent_name}/{conv_ae_name}/{conv_ae_type}_best.pt", map_location='cpu'))
+    return model
 
-    conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
-                  if re.search(r"\.npy$", i)]
 
+def load_minmax():
     minmax_data = np.load("../data/minmax/minmax_data.npy")
     minmax_data = torch.tensor(minmax_data, dtype=torch.float32)
     min_vals = minmax_data[0].view(1, 3, 1, 1)
     max_vals = minmax_data[1].view(1, 3, 1, 1)
+    return min_vals, max_vals
 
-    model = init_model(config)
-    model_name = "conditional_ae_3"
-    model.load_state_dict(torch.load("../saved_models/latent512/" + model_name + f"/{model_name}_best.pt",
-                                     map_location='cpu'))
 
-    for (R, Hp) in conditions:
-        input_data = np.load(data_path + f"/R_{R}_Hp_{Hp}.npy", allow_pickle=True, mmap_mode='r')
-        input_data = torch.as_tensor(input_data.copy(), dtype=torch.float32)
-        input_data = (input_data - min_vals) / (max_vals - min_vals)
-        results = model.encoder(input_data).detach()
-        torch.save(results, "../data/" + tag + "/latent512/" + model_name + f"/R_{R}_Hp_{Hp}_latent.pt")
+if __name__ == '__main__':
+    latent_name = "latent128"
+    conv_ae_type = "conditional_ae"
+    model_number = "5"
+    conv_ae_name = f"{conv_ae_type}_{model_number}"
+    config = yaml.load(open("../config.yaml", "r"), Loader=yaml.FullLoader)
+
+    init_directory(latent_name, conv_ae_name)
+    model = init_model(config, latent_name, conv_ae_name, conv_ae_type)
+    min_vals, max_vals = load_minmax()
+    for tag in ["train", "val", "test"]:
+        data_path = f"../data/{tag}/raw"
+        conditions = [tuple(map(int, re.findall(r"\d+", i))) for i in os.listdir(data_path)
+                      if re.search(r"\.npy$", i)]
+        for (R, Hp) in conditions:
+            input_data = np.load(f"{data_path}/R_{R}_Hp_{Hp}.npy", allow_pickle=True, mmap_mode='r')
+            input_data = torch.as_tensor(input_data.copy(), dtype=torch.float32)
+            input_data = (input_data - min_vals) / (max_vals - min_vals)
+            results = model.encoder(input_data).detach()
+            torch.save(results, f"../data/{tag}/{latent_name}/{conv_ae_name}/R_{R}_Hp_{Hp}_latent.pt")

@@ -17,19 +17,19 @@ shallow_water_ae/
 │   │   └── minmax_data.npy
 │   │
 │   ├── test/
-│   │   ├── latent512/...
+│   │   ├── latent128/...
 │   │   ├── R_14_Hp_5.npy
 │   │   ...
 │   │   └── R_30_Hp_17.npy
 │   │
 │   ├── train/
-│   │   ├── latent512/...
+│   │   ├── latent128/...
 │   │   ├── R_4_Hp_2.npy
 │   │   ...
 │   │   └── R_40_Hp_20.npy
 │   │
 │   └── val/
-│       ├── latent512/
+│       ├── latent128/
 │       │   ├── ae_1/...
 │       │   ...
 │       │   ├── ae_3/...
@@ -52,7 +52,7 @@ shallow_water_ae/
 │   └── shallow_water_vis.py
 │
 ├── saved_models/
-│   └── latent512/
+│   └── latent128/
 │       ├── ae_1/...
 │       ...
 │       ├── ae_3/...
@@ -153,7 +153,3 @@ second row: ref,
 third row: err
 
 ![recon results](./assets/pred_test.gif)
-
-# Test error
-
-![](./assets/训练结果的测试误差对比.png)

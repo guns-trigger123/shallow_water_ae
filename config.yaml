@@ -1,0 +1,38 @@
+data_params:
+  train_batch_size: 50
+  test_batch_size: 2400
+  val_batch_size: 4000
+  train_num_workers: 3
+  val_num_workers: 1
+  test_num_workers: 1
+
+
+exp_params:
+  LR: 0.0001
+  recon_MLP_LR: 0.0001
+  weight_decay: 0.0
+  T_0: 10
+  T_mult: 2
+  manual_seed: 1265
+
+trainer_params:
+  max_epochs: 1000
+  recon_MLP_weight: 0.01
+  recon_MLP_weight_mode: "constant"
+
+logging_params:
+  recon_model_number: 5
+  recon_model_save_type: "conditional_ae"
+  pred_model_number: 1
+  pred_model_save_type: "lstm"
+
+cae:
+  C: 3
+  H: 128
+  W: 128
+  latent_dim: 128
+
+cae_lstm:
+  hidden_dim: 256
+  num_conditional: 0
+  predict_timestep: 5

@@ -225,7 +225,7 @@ def worker_simulation(params):
 
 if __name__ == "__main__":
 
-    config = yaml.load(open("config.yaml", "r"),
+    config = yaml.load(open("problem_config.yaml", "r"),
                        Loader=yaml.FullLoader)
 
     for timestep in config['timestep']:

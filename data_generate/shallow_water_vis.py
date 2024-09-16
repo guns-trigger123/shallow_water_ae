@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-data = np.load('../data/train/R_32_Hp_16.npy', allow_pickle=True, mmap_mode='r')
+data = np.load('../data/train/raw/R_32_Hp_16.npy', allow_pickle=True, mmap_mode='r')
 array = data[0]
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 

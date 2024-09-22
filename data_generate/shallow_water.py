@@ -22,13 +22,8 @@ def x_to_y(X):  # averaging in 2*2 windows (4 pixels)
     Y = np.zeros((int(dim / 2), int(dim / 2)))
     for i in range(int(dim / 2)):
         for j in range(int(dim / 2)):
-            Y[i,
-              j] = X[2 * i, 2 * j] + X[2 * i + 1, 2 * j] + X[2 * i, 2 * j +
-                                                             1] + X[2 * i + 1,
-                                                                    2 * j + 1]
-
-            Y_noise = np.random.multivariate_normal(np.zeros(100),
-                                                    0.0000 * np.eye(100))
+            Y[i, j] = X[2 * i, 2 * j] + X[2 * i + 1, 2 * j] + X[2 * i, 2 * j + 1] + X[2 * i + 1, 2 * j + 1]
+            Y_noise = np.random.multivariate_normal(np.zeros(100), 0.0000 * np.eye(100))
             Y_noise.shape = (10, 10)
             Y = Y + Y_noise
     return Y
@@ -143,6 +138,21 @@ class shallow(object):
 
         return dh_dt, du_dt, dv_dt
 
+    def d_dt_conservative(self, h, u, v):
+        """
+        http://en.wikipedia.org/wiki/Shallow_water_equations#Conservative_form
+        """
+        for x in [h, u, v]:  # type check
+            assert isinstance(x, np.ndarray) and not isinstance(x, np.matrix)
+
+        g, b, dx = self.g, self.b, self.dx
+
+        dh_dt = -self.d_dx(h * u) - self.d_dy(h * v)
+        du_dt = (dh_dt * u - self.d_dx(h * u ** 2 + 1. / 2 * g * h ** 2) - self.d_dy(h * u * v)) / h
+        dv_dt = (dh_dt * v - self.d_dx(h * u * v) - self.d_dy(h * v ** 2 + 1. / 2 * g * h ** 2)) / h
+
+        return dh_dt, du_dt, dv_dt
+
     def evolve(self):
         """
         Evolve state (h, u, v) forward in time using simple Euler method
@@ -161,7 +171,6 @@ class shallow(object):
 
 
 def simulation(fig_size, R, Hp_hat, iteration_times):
-
     SW = shallow(N=fig_size, px=72, py=80, R=R * R, Hp=Hp_hat / 100, b=0.2)
 
     # chose a point (x,y) to check the evolution
@@ -183,28 +192,19 @@ def simulation(fig_size, R, Hp_hat, iteration_times):
         #SW.animate()
 
         if i % 100 == 0:
-
-            U = np.expand_dims(SW.u,
-                               axis=0)  # convert (128,128) to (1,128,128)
-            V = np.expand_dims(SW.v,
-                               axis=0)  # convert (128,128) to (1,128,128)
-            H = np.expand_dims(SW.h,
-                               axis=0)  # convert (128,128) to (1,128,128)
+            U = np.expand_dims(SW.u, axis=0)  # convert (128,128) to (1,128,128)
+            V = np.expand_dims(SW.v, axis=0)  # convert (128,128) to (1,128,128)
+            H = np.expand_dims(SW.h, axis=0)  # convert (128,128) to (1,128,128)
 
             data = [U, V, H]  # aggregate 3 np arrays to one list
 
-            data = np.concatenate(
-                data, axis=0
-            )  # concatenate 3 np arrays by axis 0, here the shape is (3,128,128)
+            data = np.concatenate(data, axis=0)  # concatenate 3 np arrays by axis 0, here the shape is (3,128,128)
 
-            data = np.expand_dims(
-                data, axis=0)  # convert (3,128,128) to (1,3,128,128)
+            data = np.expand_dims(data, axis=0)  # convert (3,128,128) to (1,3,128,128)
 
             data_list.append(data)  # append current data into a list
 
-    final_npy = np.concatenate(
-        data_list, axis=0
-    )  # concatenate all array in this list, there shape is (t,3,128,128)
+    final_npy = np.concatenate(data_list, axis=0)  # concatenate all array in this list, there shape is (t,3,128,128)
 
     timestep = int(iteration_times / 100)
     file_name = f'R_{R}_Hp_{Hp_hat}'

@@ -1,9 +1,12 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-data = np.load('../data/train/raw/R_32_Hp_16.npy', allow_pickle=True, mmap_mode='r')
-array = data[0]
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+R, Hp, timestep = 20, 12, 100
+data = np.load(f'../data/train/raw/R_{R}_Hp_{Hp}.npy', allow_pickle=True, mmap_mode='r')
+# data_conservative = np.load('../data/R_10_Hp_5_conservative.npy', allow_pickle=True, mmap_mode='r')
+# data = np.load("../data/R_10_Hp_5.npy", allow_pickle=True, mmap_mode='r')
+array = data[timestep]
+fig, axes = plt.subplots(1, 3, figsize=(10, 3))
 
 # Titles for each channel
 titles = ['u', 'v', 'h']
@@ -16,4 +19,6 @@ for i in range(3):
     fig.colorbar(im, ax=axes[i], orientation='vertical')
 
 # Display the plot
+# fig.suptitle(f"R = {R} Hp = {Hp} timestep = {timestep}")
+fig.savefig(f"./R = {R} Hp = {Hp} timestep = {timestep}.pdf", format='pdf')
 plt.show()

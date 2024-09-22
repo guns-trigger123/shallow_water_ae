@@ -5,6 +5,7 @@ import numpy as np
 from shallow_water_dataset import ShallowWaterReconstructDataset, ShallowWaterLatentPredictDataset, ShallowWaterPredictDataset
 from conv_ae import ConvAutoencoder
 from lstm import LSTMPredictor
+from conv_lstm import ConvLSTM
 
 
 def init_model(config: dict, saved_model_path=None):
@@ -23,6 +24,35 @@ def init_cae_lstm_model(config: dict, cae_lstm_param_path=None):
         cae_lstm = LSTMPredictor(config)
         cae_lstm.load_state_dict(torch.load(cae_lstm_param_path, map_location='cpu'))
         return cae_lstm
+
+
+def init_ConvLSTM_model(config: dict, saved_model_path=None):
+    input_dim = config["cae"]["C"]
+    pred_time_step = config["cae_lstm"]["predict_timestep"]
+    hidden_dim = [16, 32, 64, 128, 180, 128, 64, 32, 16, 3 * pred_time_step]
+    kernel_size = (3, 3)
+    num_layers = len(hidden_dim)
+    batch_first = True
+    isbias = True
+    return_all_layers = False
+    if saved_model_path == None:
+        return ConvLSTM(input_dim=input_dim,
+                        hidden_dim=hidden_dim,
+                        kernel_size=kernel_size,
+                        num_layers=num_layers,
+                        batch_first=batch_first,
+                        bias=isbias,
+                        return_all_layers=return_all_layers)
+    else:
+        conv_lstm = ConvLSTM(input_dim=input_dim,
+                             hidden_dim=hidden_dim,
+                             kernel_size=kernel_size,
+                             num_layers=num_layers,
+                             batch_first=batch_first,
+                             bias=isbias,
+                             return_all_layers=return_all_layers)
+        conv_lstm.load_state_dict(torch.load(saved_model_path, map_location='cpu'))
+        return conv_lstm
 
 
 def init_recon_data(config: dict, tag: str):
